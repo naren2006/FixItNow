@@ -78,9 +78,14 @@ app.post('/api/complaints', async (req, res) => {
     // Use AI to classify the complaint if no department provided
     let classifiedDepartment = department;
     if (!department) {
-      console.log('🤖 Classifying complaint with AI...');
-      classifiedDepartment = await classifyComplaint(description);
-      console.log(`✅ AI classified as: ${classifiedDepartment}`);
+      if (process.env.OPENAI_API_KEY) {
+        console.log('🤖 Classifying complaint with AI...');
+        classifiedDepartment = await classifyComplaint(description);
+        console.log(`✅ AI classified as: ${classifiedDepartment}`);
+      } else {
+        console.log('⚠️ No OpenAI API key - using default department');
+        classifiedDepartment = 'electrician'; // Default fallback
+      }
     }
 
     // Create new complaint

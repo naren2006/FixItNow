@@ -1,9 +1,17 @@
-const OpenAI = require('openai');
+// Only require OpenAI if API key is available
+let OpenAI = null;
+let openai = null;
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+if (process.env.OPENAI_API_KEY) {
+  try {
+    OpenAI = require('openai');
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  } catch (error) {
+    console.log('⚠️ OpenAI package not available or API key invalid');
+  }
+}
 
 /**
  * Classify complaint description into appropriate department
@@ -11,6 +19,12 @@ const openai = new OpenAI({
  * @returns {Promise<string>} - The classified department
  */
 async function classifyComplaint(description) {
+  // Return default if OpenAI is not configured
+  if (!openai) {
+    console.log('⚠️ OpenAI not configured - using default department');
+    return 'electrician';
+  }
+  
   try {
     const prompt = `
 Classify the following complaint description into one of these departments:
