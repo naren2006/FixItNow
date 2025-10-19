@@ -1,17 +1,5 @@
-// Only require OpenAI if API key is available
-let OpenAI = null;
-let openai = null;
-
-if (process.env.OPENAI_API_KEY) {
-  try {
-    OpenAI = require('openai');
-    openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  } catch (error) {
-    console.log('⚠️ OpenAI package not available or API key invalid');
-  }
-}
+// Simple classification without OpenAI dependency
+// This will work even without OpenAI package installed
 
 /**
  * Classify complaint description into appropriate department
@@ -19,58 +7,41 @@ if (process.env.OPENAI_API_KEY) {
  * @returns {Promise<string>} - The classified department
  */
 async function classifyComplaint(description) {
-  // Return default if OpenAI is not configured
-  if (!openai) {
-    console.log('⚠️ OpenAI not configured - using default department');
-    return 'electrician';
+  console.log('🔍 Classifying complaint using keyword matching...');
+  
+  const desc = description.toLowerCase();
+  
+  // Simple keyword-based classification
+  if (desc.includes('water') || desc.includes('pipe') || desc.includes('leak') || 
+      desc.includes('toilet') || desc.includes('drain') || desc.includes('faucet') ||
+      desc.includes('shower') || desc.includes('bathroom') || desc.includes('sink')) {
+    console.log('✅ Classified as: plumber');
+    return 'plumber';
   }
   
-  try {
-    const prompt = `
-Classify the following complaint description into one of these departments:
-- electrician (for electrical issues like lights, fans, power, wiring)
-- plumber (for water, pipes, leaks, drainage, toilets)
-- carpenter (for furniture, doors, windows, woodwork)
-- cleaner (for cleaning, maintenance, general upkeep)
-- IT support (for computers, internet, software, technical issues)
-
-Complaint: "${description}"
-
-Respond with only the department name (e.g., "electrician", "plumber", etc.):
-`;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful assistant that classifies maintenance complaints into appropriate departments. Always respond with just the department name."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      max_tokens: 10,
-      temperature: 0.1
-    });
-
-    const classification = response.choices[0].message.content.trim().toLowerCase();
-    
-    // Validate the classification
-    const validDepartments = ['electrician', 'plumber', 'carpenter', 'cleaner', 'IT support'];
-    
-    if (validDepartments.includes(classification)) {
-      return classification;
-    } else {
-      // Fallback to electrician if classification is not valid
-      return 'electrician';
-    }
-  } catch (error) {
-    console.error('OpenAI classification error:', error);
-    // Fallback to electrician if OpenAI fails
-    return 'electrician';
+  if (desc.includes('computer') || desc.includes('internet') || desc.includes('wifi') ||
+      desc.includes('software') || desc.includes('laptop') || desc.includes('printer') ||
+      desc.includes('network') || desc.includes('email') || desc.includes('system')) {
+    console.log('✅ Classified as: IT support');
+    return 'IT support';
   }
+  
+  if (desc.includes('door') || desc.includes('window') || desc.includes('furniture') ||
+      desc.includes('wood') || desc.includes('cabinet') || desc.includes('shelf') ||
+      desc.includes('table') || desc.includes('chair') || desc.includes('desk')) {
+    console.log('✅ Classified as: carpenter');
+    return 'carpenter';
+  }
+  
+  if (desc.includes('clean') || desc.includes('dirty') || desc.includes('mess') ||
+      desc.includes('trash') || desc.includes('garbage') || desc.includes('maintenance')) {
+    console.log('✅ Classified as: cleaner');
+    return 'cleaner';
+  }
+  
+  // Default to electrician for electrical issues
+  console.log('✅ Classified as: electrician (default)');
+  return 'electrician';
 }
 
 module.exports = { classifyComplaint };
